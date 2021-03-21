@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
-const decorate_1 = require("./decorate");
+const indentDecorator_1 = require("./indentDecorator");
 // from decoration tut
 const decorationType = vscode.window.createTextEditorDecorationType({
     backgroundColor: 'green',
@@ -12,8 +12,8 @@ function activate(context) {
     console.log("Congratulations, your extension is now active!");
     vscode.workspace.onWillSaveTextDocument(event => {
         const openEditor = vscode.window.visibleTextEditors.filter(editor => editor.document.uri === event.document.uri)[0];
-        decorate_1.decorate(openEditor);
-        // decorateIndent(openEditor);
+        // decorate(openEditor);
+        indentDecorator_1.decorateIndent(openEditor);
     });
 }
 exports.activate = activate;

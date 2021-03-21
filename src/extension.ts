@@ -15,8 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
 		const openEditor = vscode.window.visibleTextEditors.filter(
 			editor => editor.document.uri === event.document.uri
 		)[0];
-		decorate(openEditor);
-		// decorateIndent(openEditor);
+		// decorate(openEditor);
+		decorateIndent(openEditor);
 	});
 }
 
