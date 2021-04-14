@@ -9,6 +9,9 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.workspace.getConfiguration().update('editor.formatOnType', true, vscode.ConfigurationTarget.Workspace);
 	vscode.workspace.getConfiguration().update('editor.formatOnSave', true, vscode.ConfigurationTarget.Workspace);
 	vscode.workspace.getConfiguration().update('editor.renderWhitespace', false, vscode.ConfigurationTarget.Workspace);
+	vscode.workspace.getConfiguration().update('files.autoSave', 'afterDelay', vscode.ConfigurationTarget.Workspace);
+	vscode.workspace.getConfiguration().update('files.autoSaveDelay', 500, vscode.ConfigurationTarget.Workspace);
+
 
 
 	vscode.window.onDidChangeVisibleTextEditors(event => {
@@ -27,6 +30,31 @@ export function activate(context: vscode.ExtensionContext) {
 	if (vscode.window.activeTextEditor) {
 		decorateIndent(vscode.window.activeTextEditor);
 	}
+
+	wait(1000).then(() => {
+		if (vscode.window.activeTextEditor) {
+			decorateIndent(vscode.window.activeTextEditor);
+		}
+	});
+	wait(2000).then(() => {
+		if (vscode.window.activeTextEditor) {
+			decorateIndent(vscode.window.activeTextEditor);
+		}
+	});
+	wait(3000).then(() => {
+		if (vscode.window.activeTextEditor) {
+			decorateIndent(vscode.window.activeTextEditor);
+		}
+	});
+	wait(4000).then(() => {
+		if (vscode.window.activeTextEditor) {
+			decorateIndent(vscode.window.activeTextEditor);
+		}
+	});
+}
+
+function wait(milliseconds: number) {
+	return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
 export function deactivate() {

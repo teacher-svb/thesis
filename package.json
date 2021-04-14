@@ -2,8 +2,11 @@
 	"name": "thesis-tool-viz-from-indent",
 	"displayName": "code block visualization",
 	"description": "visualizes code blocks for python",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "teacher-svb",
+	"repository": {
+		"url": "https://github.com/teacher-svb/thesis"
+	},
 	"engines": {
 		"vscode": "^1.54.0"
 	},
@@ -11,7 +14,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onLanguage:python"
+		"onLanguage:python",
+		"onStartupFinished"
 	],
 	"main": "./out/extension.js",
 	"contributes": {

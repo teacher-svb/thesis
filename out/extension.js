@@ -10,6 +10,8 @@ function activate(context) {
     vscode.workspace.getConfiguration().update('editor.formatOnType', true, vscode.ConfigurationTarget.Workspace);
     vscode.workspace.getConfiguration().update('editor.formatOnSave', true, vscode.ConfigurationTarget.Workspace);
     vscode.workspace.getConfiguration().update('editor.renderWhitespace', false, vscode.ConfigurationTarget.Workspace);
+    vscode.workspace.getConfiguration().update('files.autoSave', 'afterDelay', vscode.ConfigurationTarget.Workspace);
+    vscode.workspace.getConfiguration().update('files.autoSaveDelay', 500, vscode.ConfigurationTarget.Workspace);
     vscode.window.onDidChangeVisibleTextEditors(event => {
         event.forEach(openEditor => {
             indentDecorator_1.decorateIndent(openEditor);
@@ -22,8 +24,31 @@ function activate(context) {
     if (vscode.window.activeTextEditor) {
         indentDecorator_1.decorateIndent(vscode.window.activeTextEditor);
     }
+    wait(1000).then(() => {
+        if (vscode.window.activeTextEditor) {
+            indentDecorator_1.decorateIndent(vscode.window.activeTextEditor);
+        }
+    });
+    wait(2000).then(() => {
+        if (vscode.window.activeTextEditor) {
+            indentDecorator_1.decorateIndent(vscode.window.activeTextEditor);
+        }
+    });
+    wait(3000).then(() => {
+        if (vscode.window.activeTextEditor) {
+            indentDecorator_1.decorateIndent(vscode.window.activeTextEditor);
+        }
+    });
+    wait(4000).then(() => {
+        if (vscode.window.activeTextEditor) {
+            indentDecorator_1.decorateIndent(vscode.window.activeTextEditor);
+        }
+    });
 }
 exports.activate = activate;
+function wait(milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
 function deactivate() {
     // get the current indentation method, as defined by the settings
     vscode.workspace.getConfiguration().update('editor.lineHeight', 0, vscode.ConfigurationTarget.Workspace);

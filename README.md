@@ -34,3 +34,8 @@ Users appreciate release notes as you update your extension.
 ### 0.0.1
 
 Initial alpha release.
+
+### 0.0.2
+
+bug fixes:
+ - fixed auto-save to happen after a delay of 500ms
