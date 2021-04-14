@@ -38,20 +38,16 @@ class CodeBlock {
         const titleEnd = 999;
         const titleRange = new vscode.Range(this.range.start.line, titleStart, this.range.start.line, titleEnd);
         addDecoration(this.indentLevel, this.type, titleRange, DecorationPurpose.TITLE);
-        const endStart = (this.indentLevel) * tabsize;
-        const endEnd = 999;
-        const endRange = new vscode.Range(this.range.end.line, endStart, this.range.end.line, endEnd);
-        addDecoration(this.indentLevel, this.type, endRange, DecorationPurpose.END);
+        // const endStart = (this.indentLevel) * tabsize;
+        // const endEnd = 999;
+        // const endRange = new vscode.Range(this.range.end.line, endStart, this.range.end.line, endEnd);
+        // addDecoration(this.indentLevel, this.type, endRange, DecorationPurpose.END);
     }
 }
 const codeblocks = [];
 function decorateIndent(editor) {
-    var _a;
-    // get the current indentation method, as defined by the settings
-    vscode.workspace.getConfiguration().update('editor.lineHeight', 25, vscode.ConfigurationTarget.Workspace);
-    vscode.workspace.getConfiguration().update('editor.formatOnType', true, vscode.ConfigurationTarget.Workspace);
-    vscode.workspace.getConfiguration().update('editor.formatOnSave', true, vscode.ConfigurationTarget.Workspace);
     // vscode.commands.executeCommand('editor.action.formatDocument');
+    var _a;
     const useSpaces = (_a = vscode.workspace.getConfiguration('editor').get('insertSpaces')) !== null && _a !== void 0 ? _a : true;
     useSpaces ? vscode.commands.executeCommand('editor.action.indentationToSpaces')
         : vscode.commands.executeCommand('editor.action.indentationToTabs');
@@ -103,12 +99,16 @@ function findRanges(editor) {
             openRanges.push(new vscode.Position(lineNum - 1, 0));
         }
         if (indentDelta < 0) {
-            const start = openRanges.pop();
-            const end = new vscode.Position(lineNum, 999);
-            if (start && end) {
-                // closedRanges.push(new vscode.Range(start, end));
-                let codeBlock = new CodeBlock(new vscode.Range(start, end), CodeBlockType.other, indentLevel);
-                codeblocks.push(codeBlock);
+            for (let i = 0; i < Math.abs(indentDelta); ++i) {
+                const start = openRanges.pop();
+                const end = new vscode.Position(lineNum - 1, 999);
+                if (start && end) {
+                    // closedRanges.push(new vscode.Range(start, end));
+                    let startLineWhitespaces = lines[start.line].search(/\S|$/);
+                    let startLineIndentLevel = useSpaces ? Math.floor(startLineWhitespaces / tabsize) : startLineWhitespaces;
+                    let codeBlock = new CodeBlock(new vscode.Range(start, end), CodeBlockType.other, startLineIndentLevel);
+                    codeblocks.push(codeBlock);
+                }
             }
         }
     });
@@ -120,7 +120,14 @@ function refineRangesBySymbols(editor, symbols) {
 }
 function refineRangesBySymbolsRecursive(editor, symbol) {
     switch (symbol.kind) {
+        case vscode.SymbolKind.Interface:
+        case vscode.SymbolKind.Object:
+        case vscode.SymbolKind.Class:
+            refineRange(symbol.range, CodeBlockType.class);
+            break;
         case vscode.SymbolKind.Function:
+        case vscode.SymbolKind.Method:
+        case vscode.SymbolKind.Constructor:
             refineRange(symbol.range, CodeBlockType.function);
             break;
         default:
@@ -132,7 +139,7 @@ function refineRangesBySymbolsRecursive(editor, symbol) {
 }
 function refineRange(range, type) {
     const codeblock = codeblocks.find(cb => {
-        return cb.range.start.line == range.start.line && cb.range.end.line == range.end.line;
+        return cb.range.start.line == range.start.line; // && cb.range.end.line == range.end.line;
     });
     if (codeblock)
         codeblock.type = type;
@@ -185,38 +192,50 @@ function createDecorationOption() {
     };
 }
 function createDecorationType(type) {
+    // returns the type of color theme: light (1), dark (2) or high contrast (3)
+    // vscode.window.activeColorTheme.kind;
     const typeColors = {
         [CodeBlockType.class]: '255, 100, 100',
         [CodeBlockType.function]: '100, 255, 100',
         [CodeBlockType.other]: '100, 100, 255'
     };
+    const opacity = vscode.window.activeColorTheme.kind === 2 ? 0.1 : 0.5;
     const color = typeColors[type];
     const titleDecType = vscode.window.createTextEditorDecorationType({
-        backgroundColor: `rgba(${color}, 0.5)`,
-        outline: `2px solid rgba(${color}, 1)`,
+        // color: '#000',
+        backgroundColor: `rgba(${color}, ${opacity})`,
+        border: `2px solid rgba(${color}, ${Math.max(opacity * 2, 0.5)})`,
+        fontWeight: 'bold',
         before: {
-            backgroundColor: `rgba(${color}, 1)`,
-            width: '2px',
-            height: '50%',
-            contentText: '',
-            margin: '-100% 0 0 0'
+            backgroundColor: `rgba(${color}, ${Math.max(opacity * 2, 0.5)})`,
+            width: '4px',
+            height: '67%',
+            contentText: ' ',
+            margin: `-67% 0 0 0`
         }
     });
     const endDecType = vscode.window.createTextEditorDecorationType({
-        backgroundColor: `rgba(${color}, 0.5)`,
-        outline: `2px solid rgba(${color}, 1)`,
+    // backgroundColor: `rgba(${color}, 0.5)`,
+    // outline: `2px solid rgba(${color}, 1)`,
+    // before: {
+    //     backgroundColor: `rgba(${color}, 1)`,
+    //     width: '2px',
+    //     height: '150%',
+    //     contentText: '',
+    //     margin: '-50% 0 0 0'
+    // }
     });
     const codeDecType = vscode.window.createTextEditorDecorationType({
     // backgroundColor: 'rgba(255, 200, 200, 0.5)',
     });
     const indentDecType = vscode.window.createTextEditorDecorationType({
-        backgroundColor: `rgba(${color}, 0.25)`,
+        backgroundColor: `rgba(${color}, ${opacity})`,
         before: {
-            backgroundColor: `rgba(${color}, 1)`,
-            width: '2px',
+            backgroundColor: `rgba(${color}, ${Math.max(opacity * 2, 0.5)})`,
+            width: '4px',
             height: '100%',
-            contentText: '',
-            margin: '-100% 0 0 0'
+            contentText: ' ',
+            margin: `-100% 0 0 0`
         }
     });
     return {

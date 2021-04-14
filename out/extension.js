@@ -3,31 +3,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const indentDecorator_1 = require("./indentDecorator");
-// from decoration tut
-const decorationType = vscode.window.createTextEditorDecorationType({
-    backgroundColor: 'green',
-    border: '2px solid white',
-});
 function activate(context) {
     console.log("Congratulations, your extension is now active!");
+    // get the current indentation method, as defined by the settings
+    vscode.workspace.getConfiguration().update('editor.lineHeight', 25, vscode.ConfigurationTarget.Workspace);
+    vscode.workspace.getConfiguration().update('editor.formatOnType', true, vscode.ConfigurationTarget.Workspace);
+    vscode.workspace.getConfiguration().update('editor.formatOnSave', true, vscode.ConfigurationTarget.Workspace);
+    vscode.workspace.getConfiguration().update('editor.renderWhitespace', false, vscode.ConfigurationTarget.Workspace);
+    vscode.window.onDidChangeVisibleTextEditors(event => {
+        event.forEach(openEditor => {
+            indentDecorator_1.decorateIndent(openEditor);
+        });
+    });
     vscode.workspace.onWillSaveTextDocument(event => {
         const openEditor = vscode.window.visibleTextEditors.filter(editor => editor.document.uri === event.document.uri)[0];
-        // decorate(openEditor);
         indentDecorator_1.decorateIndent(openEditor);
     });
+    if (vscode.window.activeTextEditor) {
+        indentDecorator_1.decorateIndent(vscode.window.activeTextEditor);
+    }
 }
 exports.activate = activate;
-function write(code) {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        throw new Error("There's no active editor");
-    }
-    const edit = new vscode.WorkspaceEdit();
-    const wholeDocument = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(editor.document.lineCount, 0));
-    const updateCode = new vscode.TextEdit(wholeDocument, code);
-    edit.set(editor.document.uri, [updateCode]);
-    vscode.workspace.applyEdit(edit);
+function deactivate() {
+    // get the current indentation method, as defined by the settings
+    vscode.workspace.getConfiguration().update('editor.lineHeight', 0, vscode.ConfigurationTarget.Workspace);
+    vscode.workspace.getConfiguration().update('editor.formatOnType', false, vscode.ConfigurationTarget.Workspace);
+    vscode.workspace.getConfiguration().update('editor.formatOnSave', false, vscode.ConfigurationTarget.Workspace);
+    vscode.workspace.getConfiguration().update('editor.renderWhitespace', true, vscode.ConfigurationTarget.Workspace);
 }
-function deactivate() { }
 exports.deactivate = deactivate;
 //# sourceMappingURL=extension.js.map

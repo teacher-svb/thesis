@@ -1,8 +1,9 @@
 {
 	"name": "thesis-tool-viz-from-indent",
-	"displayName": "thesis_tool_viz-from-indent",
-	"description": "",
+	"displayName": "code block visualization",
+	"description": "visualizes code blocks for python",
 	"version": "0.0.1",
+	"publisher": "teacher-svb",
 	"engines": {
 		"vscode": "^1.54.0"
 	},
@@ -10,8 +11,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onLanguage:javascript",
-		"onLanguage:typescript"
+		"onLanguage:python"
 	],
 	"main": "./out/extension.js",
 	"contributes": {

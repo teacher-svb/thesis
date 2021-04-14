@@ -1,42 +1,38 @@
 import * as vscode from "vscode";
-import { decorate } from "./decorate";
 import { decorateIndent } from "./indentDecorator";
-
-// from decoration tut
-const decorationType = vscode.window.createTextEditorDecorationType({
-	backgroundColor: 'green',
-	border: '2px solid white',
-})
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log("Congratulations, your extension is now active!");
+
+	// get the current indentation method, as defined by the settings
+	vscode.workspace.getConfiguration().update('editor.lineHeight', 25, vscode.ConfigurationTarget.Workspace);
+	vscode.workspace.getConfiguration().update('editor.formatOnType', true, vscode.ConfigurationTarget.Workspace);
+	vscode.workspace.getConfiguration().update('editor.formatOnSave', true, vscode.ConfigurationTarget.Workspace);
+	vscode.workspace.getConfiguration().update('editor.renderWhitespace', false, vscode.ConfigurationTarget.Workspace);
+
+
+	vscode.window.onDidChangeVisibleTextEditors(event => {
+		event.forEach(openEditor => {
+			decorateIndent(openEditor);
+		})
+	});
 
 	vscode.workspace.onWillSaveTextDocument(event => {
 		const openEditor = vscode.window.visibleTextEditors.filter(
 			editor => editor.document.uri === event.document.uri
 		)[0];
-		// decorate(openEditor);
 		decorateIndent(openEditor);
 	});
-}
 
-function write(code: string): void {
-	const editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		throw new Error("There's no active editor");
+	if (vscode.window.activeTextEditor) {
+		decorateIndent(vscode.window.activeTextEditor);
 	}
-
-	const edit = new vscode.WorkspaceEdit();
-
-	const wholeDocument = new vscode.Range(
-		new vscode.Position(0, 0),
-		new vscode.Position(editor.document.lineCount, 0)
-	);
-	const updateCode = new vscode.TextEdit(wholeDocument, code);
-
-	edit.set(editor.document.uri, [updateCode]);
-
-	vscode.workspace.applyEdit(edit);
 }
 
-export function deactivate() { }
+export function deactivate() {
+	// get the current indentation method, as defined by the settings
+	vscode.workspace.getConfiguration().update('editor.lineHeight', 0, vscode.ConfigurationTarget.Workspace);
+	vscode.workspace.getConfiguration().update('editor.formatOnType', false, vscode.ConfigurationTarget.Workspace);
+	vscode.workspace.getConfiguration().update('editor.formatOnSave', false, vscode.ConfigurationTarget.Workspace);
+	vscode.workspace.getConfiguration().update('editor.renderWhitespace', true, vscode.ConfigurationTarget.Workspace);
+}
