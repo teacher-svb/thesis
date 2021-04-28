@@ -39,3 +39,21 @@ Initial alpha release.
 
 bug fixes:
  - fixed auto-save to happen after a delay of 500ms
+
+
+### 0.0.3
+
+bug fixes:
+ - fixed bug where blocks would only get partially rendered when the last line of the file is part of a block
+
+
+### 0.0.4
+
+bug fixes:
+ - fixed bug where undo/redo states were created when creating the code block vizualizations, creating a much larger undo/redo stack then necessary
+
+
+### 0.0.5
+
+bug fixes:
+ - redo fixed

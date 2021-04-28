@@ -27,8 +27,6 @@ class CodeBlock {
     }
 
     decorate() {
-        // if (this.type != CodeBlockType.function) return;
-
         const tabsize = vscode.workspace.getConfiguration('editor').get<number>('tabSize') ?? 4;
         const useSpaces = vscode.workspace.getConfiguration('editor').get<boolean>('insertSpaces') ?? true;
 
@@ -56,9 +54,9 @@ export function decorateIndent(editor: vscode.TextEditor): void {
 
     // vscode.commands.executeCommand('editor.action.formatDocument');
 
-    const useSpaces = vscode.workspace.getConfiguration('editor').get<boolean>('insertSpaces') ?? true;
-    useSpaces ? vscode.commands.executeCommand('editor.action.indentationToSpaces')
-        : vscode.commands.executeCommand('editor.action.indentationToTabs');
+    // const useSpaces = vscode.workspace.getConfiguration('editor').get<boolean>('insertSpaces') ?? true;
+    // useSpaces ? vscode.commands.executeCommand('editor.action.indentationToSpaces')
+    //     : vscode.commands.executeCommand('editor.action.indentationToTabs');
 
     fillEmptyLines(editor);
 
@@ -108,6 +106,7 @@ function findRanges(editor: vscode.TextEditor) {
         let indentDelta = line.trim().length !== 0 && indentLevel >= 0 ? newIndentLevel - indentLevel : 0;
         indentLevel = line.trim().length !== 0 ? newIndentLevel : indentLevel;
 
+
         // discard indent level 0
         if (indentLevel === 0 && indentDelta >= 0) {
             return;
@@ -117,10 +116,23 @@ function findRanges(editor: vscode.TextEditor) {
             openRanges.push(new vscode.Position(lineNum - 1, 0));
         }
         if (indentDelta < 0) {
-
             for (let i = 0; i < Math.abs(indentDelta); ++i) {
                 const start = openRanges.pop();
                 const end = new vscode.Position(lineNum - 1, 999);
+                if (start && end) {
+                    // closedRanges.push(new vscode.Range(start, end));
+                    let startLineWhitespaces = lines[start.line].search(/\S|$/);
+                    let startLineIndentLevel = useSpaces ? Math.floor(startLineWhitespaces / tabsize) : startLineWhitespaces;
+                    let codeBlock = new CodeBlock(new vscode.Range(start, end), CodeBlockType.other, startLineIndentLevel);
+                    codeblocks.push(codeBlock);
+                }
+            }
+        }
+
+        if (lineNum === lines.length - 1 && indentLevel > 0) {
+            for (let i = 0; i < indentLevel; ++i) {
+                const start = openRanges.pop();
+                const end = new vscode.Position(lineNum, 999);
                 if (start && end) {
                     // closedRanges.push(new vscode.Range(start, end));
                     let startLineWhitespaces = lines[start.line].search(/\S|$/);
@@ -173,11 +185,6 @@ function fillEmptyLines(editor: vscode.TextEditor) {
     // get the current indentation method, as defined by the settings
     const tabsize = vscode.workspace.getConfiguration('editor').get<number>('tabSize') ?? 4;
     const useSpaces = vscode.workspace.getConfiguration('editor').get<boolean>('insertSpaces') ?? true;
-    vscode.workspace.getConfiguration().update('editor.lineHeight', 25, vscode.ConfigurationTarget.Workspace);
-
-    useSpaces ? vscode.commands.executeCommand('editor.action.indentationToSpaces')
-        : vscode.commands.executeCommand('editor.action.indentationToTabs');
-
 
     let indentLevel = -1;
     let lineNum = -1;
@@ -192,10 +199,13 @@ function fillEmptyLines(editor: vscode.TextEditor) {
             // add indentation to empty lines
             if (line.trim().length === 0) {
                 const indentSpaces = '' + (useSpaces ? ' '.repeat(tabsize * indentLevel) : '\t'.repeat(indentLevel));
-                edit.replace(new vscode.Range(lineNum, 0, lineNum, 999), indentSpaces);
+                const currentWhitespaces = line.replace(/\r?\n|\r/g, "");
+                if (indentSpaces !== currentWhitespaces && editor.selection.start.line !== lineNum) {
+                    edit.replace(new vscode.Range(lineNum, 0, lineNum, 999), indentSpaces);
+                }
             }
         })
-    });
+    }, { undoStopBefore: false, undoStopAfter: false });
 }
 
 function addDecoration(indentLevel: number, type: CodeBlockType, range: vscode.Range, purpose: DecorationPurpose) {
